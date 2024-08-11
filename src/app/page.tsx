@@ -1,95 +1,136 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import { useCallback } from 'react';
+import {
+  ReactFlow,
+  addEdge,
+  Background,
+  useNodesState,
+  useEdgesState,
+  MiniMap,
+  Controls,
+  Node,
+  BackgroundVariant,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+interface FlowNode extends Node {
+    id: string;
+    type?: string;
+    data: { label: string };
+    position: { x: number; y: number };
+    className?: string;
+    style?: { backgroundColor: string; width: number; height: number };
+    parentId?: string;
+    extent?: 'parent';
 }
+
+const initialNodes: FlowNode[] = [
+  {
+    id: '1',
+    type: 'input',
+    data: { label: 'Node 0' },
+    position: { x: 250, y: 5 },
+    className: 'light',
+  },
+  {
+    id: '2',
+    data: { label: 'Group A' },
+    position: { x: 100, y: 100 },
+    className: 'light',
+    style: { backgroundColor: 'rgba(255, 0, 0, 0.2)', width: 200, height: 200 },
+  },
+  {
+    id: '2a',
+    data: { label: 'Node A.1' },
+    position: { x: 10, y: 50 },
+    parentId: '2',
+  },
+  {
+    id: '3',
+    data: { label: 'Node 1' },
+    position: { x: 320, y: 100 },
+    className: 'light',
+  },
+  {
+    id: '4',
+    data: { label: 'Group B' },
+    position: { x: 320, y: 200 },
+    className: 'light',
+    style: { backgroundColor: 'rgba(255, 0, 0, 0.2)', width: 300, height: 300 },
+    type: 'group',
+  },
+  {
+    id: '4a',
+    data: { label: 'Node B.1' },
+    position: { x: 15, y: 65 },
+    className: 'light',
+    parentId: '4',
+    extent: 'parent',
+  },
+  {
+    id: '4b',
+    data: { label: 'Group B.A' },
+    position: { x: 15, y: 120 },
+    className: 'light',
+    style: {
+      backgroundColor: 'rgba(255, 0, 255, 0.2)',
+      height: 150,
+      width: 270,
+    },
+    parentId: '4',
+  },
+  {
+    id: '4b1',
+    data: { label: 'Node B.A.1' },
+    position: { x: 20, y: 40 },
+    className: 'light',
+    parentId: '4b',
+  },
+  {
+    id: '4b2',
+    data: { label: 'Node B.A.2' },
+    position: { x: 100, y: 100 },
+    className: 'light',
+    parentId: '4b',
+  },
+];
+
+const initialEdges = [
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e1-3', source: '1', target: '3' },
+  { id: 'e2a-4a', source: '2a', target: '4a' },
+  { id: 'e3-4b', source: '3', target: '4b' },
+  { id: 'e4a-4b1', source: '4a', target: '4b1' },
+  { id: 'e4a-4b2', source: '4a', target: '4b2' },
+  { id: 'e4b1-4b2', source: '4b1', target: '4b2' },
+];
+
+const NestedFlow = () => {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const onConnect = useCallback((connection: any) => {
+    setEdges((eds) => addEdge(connection, eds));
+  }, [setEdges]);
+
+  return (
+   <div style={{ width: '100vw', height: '100vh' }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        className="react-flow-subflows-example"
+        fitView
+      >
+        <MiniMap />
+        <Controls />
+        <Background variant={BackgroundVariant.Dots} />
+      </ReactFlow>
+   </div>
+  );
+};
+
+export default NestedFlow;
